@@ -19,11 +19,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "uart_processing.h"
-#include "software_timer.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "uart_processing.h"
+#include "software_timer.h"
+#include "scheduler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +59,12 @@ static void MX_ADC1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+void command_parser_fsm_run(){
+	  if (buffer_flag == 1) {
+		  command_parser_fsm();
+		  buffer_flag = 0;
+	  }
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -104,22 +110,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint8_t pData[] = "My protocol is getting started...\r\n";
   HAL_Delay(1000);
-  HAL_UART_Transmit(&huart2, pData, sizeof(pData), 1000);
+  HAL_UART_Transmit(&huart2, pData, sizeof(pData), 100);
   HAL_UART_Receive_IT(&huart2, &temp, 1);
-  setTimer1(1000);
+
+  SCH_Add_Task(timer_run, 0, 1);
+  SCH_Add_Task(command_parser_fsm_run, 1, 10);
+  SCH_Add_Task(uart_communiation_fsm, 2, 10);
   while (1)
   {
     /* USER CODE END WHILE */
-	  if (buffer_flag == 1) {
-		  command_parser_fsm();
-		  buffer_flag = 0;
-	  }
-	  uart_communiation_fsm();
-	  if (getTimer1Flag()) {
-		  setTimer1(1000);
-		  HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-	  }
+
     /* USER CODE BEGIN 3 */
+	  SCH_Dispatch_Tasks();
   }
   /* USER CODE END 3 */
 }
@@ -319,13 +321,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		buffer[index_buffer] = temp;
 		index_buffer = (index_buffer + 1) % MAX_BUFFER_SIZE;
 		buffer_flag = 1;
-		HAL_UART_Transmit(&huart2, &temp, 1, 1000);
+		HAL_UART_Transmit(&huart2, &temp, 1, 10);
 		HAL_UART_Receive_IT(&huart2, &temp, 1);
 	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	timer_run();
+	SCH_Update();
 }
 
 /* USER CODE END 4 */
