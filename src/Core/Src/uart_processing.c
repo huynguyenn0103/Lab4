@@ -37,18 +37,21 @@ void command_parser_fsm() {
 	switch (parser_state) {
 		case IDLING:
 			if (temp == '!') {
+				HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 				parser_state = RECEIVING;
 			}
 			clear_buffer();
 			break;
 		case RECEIVING:
 			if (temp == '#') {
+				HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 				parser_state = IDLING;
 				memcpy(command_data, buffer, MAX_BUFFER_SIZE);
 				char str[3];
 				HAL_UART_Transmit(&huart2, (void*)str, sprintf(str, "\r\n"),100);
 			}
 			if(temp == '!'){
+				HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 				clear_buffer();
 			}
 			break;
@@ -58,7 +61,6 @@ void command_parser_fsm() {
 }
 
 void uart_communiation_fsm() {
-//			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 	switch (communication_state) {
 		case WAIT_REQ:
 			if (strcmp((char *)command_data, "RST#") == 0) {
@@ -81,6 +83,7 @@ void uart_communiation_fsm() {
 			}
 			if (getTimer0Flag()) {
 				communication_state = EXEC_REQ;
+
 			}
 			break;
 		default:

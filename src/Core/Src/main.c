@@ -113,9 +113,9 @@ int main(void)
   HAL_UART_Transmit(&huart2, pData, sizeof(pData), 100);
   HAL_UART_Receive_IT(&huart2, &temp, 1);
 
-  SCH_Add_Task(timer_run, 0, 1);
-  SCH_Add_Task(command_parser_fsm_run, 1, 10);
-  SCH_Add_Task(uart_communiation_fsm, 2, 10);
+  SCH_Add_Task(timer_run, 10, 10);
+  SCH_Add_Task(command_parser_fsm_run, 30, 10);
+  SCH_Add_Task(uart_communiation_fsm, 20, 10);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -321,7 +321,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		buffer[index_buffer] = temp;
 		index_buffer = (index_buffer + 1) % MAX_BUFFER_SIZE;
 		buffer_flag = 1;
-		HAL_UART_Transmit(&huart2, &temp, 1, 10);
+		HAL_UART_Transmit(&huart2, &temp, 1, 50);
 		HAL_UART_Receive_IT(&huart2, &temp, 1);
 	}
 }

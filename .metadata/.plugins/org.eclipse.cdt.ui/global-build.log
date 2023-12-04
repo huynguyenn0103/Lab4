@@ -1,0 +1,7 @@
+07:05:17 **** Incremental Build of configuration Debug for project src ****
+make -j8 all 
+arm-none-eabi-size   src.elf 
+   text	   data	    bss	    dec	    hex	filename
+  17292	    124	   1956	  19372	   4bac	src.elf
+Finished building: default.size.stdout
+ 

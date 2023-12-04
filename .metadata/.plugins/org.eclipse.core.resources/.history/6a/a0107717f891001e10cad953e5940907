@@ -1,0 +1,129 @@
+/*
+ * scheduler.c
+ *
+ *  Created on: Dec 1, 2023
+ *      Author: HP
+ */
+
+/*
+ * scheduler.c
+ *
+ *  Created on: Nov 13, 2023
+ *      Author: hhaof
+ */
+
+#include "scheduler.h"
+#include "main.h"
+#include "stdio.h"
+#include "stdlib.h"
+
+
+struct sTask{
+	struct sTask *left, *right;
+	void (*funcPointer)();
+	uint32_t Delay;
+	uint32_t Period, taskID;
+	uint8_t RunMe;
+}*TasksLinkedList = 0;
+
+#define SCH_MAX_TASKS 40
+
+uint8_t task_position[SCH_MAX_TASKS], mutex_lock;
+
+
+void UpdateTaskPosition(struct sTask *updateTask){
+	if(updateTask == TasksLinkedList){
+		return;
+	}
+	struct sTask *iterator = TasksLinkedList;
+	//Not yet found position
+	uint8_t check = 0;
+	while(iterator->Delay <= updateTask->Delay){
+		if(iterator == TasksLinkedList) check += 1;
+		if(check == 2) break;
+		updateTask->Delay -= iterator->Delay;
+		iterator = iterator->right;
+	}
+	//Found position
+	if(updateTask->Delay == 0) updateTask->RunMe = 1;
+	updateTask->right = iterator;
+	updateTask->left = iterator->left;
+	iterator->left->right = updateTask;
+	iterator->left = updateTask;
+	//Update the immediately after
+	if(iterator != TasksLinkedList){
+		iterator->Delay -= updateTask->Delay;
+		if(iterator->Delay == 0) iterator->RunMe = 1;
+	}
+}
+
+int SCH_Add_Task(void (*funcPointer)(), uint32_t Delay, uint32_t Period){
+	if(!funcPointer){
+		return -1;
+	}
+	uint32_t runnerID = 0;
+	while((runnerID < SCH_MAX_TASKS) && (task_position[runnerID])){
+		runnerID += 1;
+	}
+	if(runnerID == SCH_MAX_TASKS){
+		return -1;
+	}else task_position[runnerID] = 1;
+	mutex_lock = 1;
+	struct sTask *curTask = (struct sTask*)malloc(sizeof(struct sTask));
+	curTask->Delay = Delay;
+	curTask->Period = Period;
+	curTask->funcPointer = funcPointer;
+	curTask->taskID = runnerID;
+	curTask->RunMe = 0;
+	if(TasksLinkedList){
+		UpdateTaskPosition(curTask);
+	}else{
+		curTask->left = curTask;
+		curTask->right = curTask;
+		TasksLinkedList = curTask;
+	}
+	mutex_lock = 0;
+	return runnerID;
+}
+
+void SCH_Update(){
+	if((TasksLinkedList) && (!TasksLinkedList->RunMe) && (!mutex_lock)){
+		if(TasksLinkedList->Delay > 0) TasksLinkedList->Delay -= 1;
+		if(TasksLinkedList->Delay <= 0) TasksLinkedList->RunMe = 1;
+	}
+}
+
+void SCH_Dispatch_Tasks(){
+	mutex_lock = 1;
+	while((TasksLinkedList) && (TasksLinkedList->RunMe)){
+		(*TasksLinkedList->funcPointer)();
+		if(TasksLinkedList->Period == 0){
+			struct sTask *toDelete = TasksLinkedList;
+			TasksLinkedList = TasksLinkedList->right;
+			SCH_Delete_Task(toDelete->taskID);
+		}else{
+			struct sTask *toFind = TasksLinkedList;
+			TasksLinkedList->right->left = TasksLinkedList->left;
+			TasksLinkedList->left->right = TasksLinkedList->right;
+			TasksLinkedList = TasksLinkedList->right;
+			toFind->RunMe = 0;
+			toFind->Delay = toFind->Period;
+			UpdateTaskPosition(toFind);
+		}
+	}
+	mutex_lock = 0;
+}
+
+void SCH_Delete_Task(uint32_t index){
+	if(task_position[index]){
+		task_position[index] = 0;
+		struct sTask *iterator = TasksLinkedList;
+		while(iterator->taskID != index){
+			iterator = iterator->right;
+		}
+		iterator->right->left = iterator->left;
+		iterator->left->right = iterator->right;
+		free(iterator);
+	}
+}
+

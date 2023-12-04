@@ -1,0 +1,20 @@
+17:50:10 **** Incremental Build of configuration Debug for project assignment-simulation ****
+make -j8 all 
+arm-none-eabi-gcc "../Core/Src/fsm_automatic.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103x6 -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/fsm_automatic.d" -MT"Core/Src/fsm_automatic.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/fsm_automatic.o"
+arm-none-eabi-gcc -o "assignment-simulation.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\HP\STM32CubeIDE\Asssignment_MCU\MCU-Assignment\STM32F103C6\STM32F103C6UX_FLASH.ld" --specs=nosys.specs -Wl,-Map="assignment-simulation.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: assignment-simulation.elf
+ 
+arm-none-eabi-size   assignment-simulation.elf 
+arm-none-eabi-objdump -h -S  assignment-simulation.elf  > "assignment-simulation.list"
+arm-none-eabi-objcopy  -O binary  assignment-simulation.elf  "assignment-simulation.bin"
+   text	   data	    bss	    dec	    hex	filename
+   9492	     40	   1800	  11332	   2c44	assignment-simulation.elf
+Finished building: default.size.stdout
+ 
+Finished building: assignment-simulation.bin
+ 
+Finished building: assignment-simulation.list
+ 
+
+17:50:12 Build Finished. 0 errors, 0 warnings. (took 1s.728ms)
+

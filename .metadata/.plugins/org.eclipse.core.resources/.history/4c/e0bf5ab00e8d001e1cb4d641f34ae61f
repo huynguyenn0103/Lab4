@@ -1,0 +1,31 @@
+/*
+ * fsm_pedestrian.c
+ *
+ *  Created on: Nov 22, 2023
+ *      Author: ProX
+ */
+
+#include "fsm_pedestrian.h"
+
+void fsm_pedestrian_run(void) {
+    //TODO
+	switch(pedestrian_status){
+	case PEDESTRIAN_INACTIVE:
+		if(isButtonPressed(4)){
+			handleButtonProcess(4);
+		}
+		break;
+
+	case PEDESTRIAN_GREEN:
+//		Show led green
+		break;
+
+	case PEDESTRIAN_RED:
+//		Show led red
+		break;
+	}
+}
+
+void fsm_buzzer_run() {
+    //TODO
+}
